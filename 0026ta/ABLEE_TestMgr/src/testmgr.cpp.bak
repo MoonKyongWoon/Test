@@ -1,0 +1,566 @@
+#include "testmgr.hpp"
+
+CTestMgr::CTestMgr() : m_pTcpSvr(nullptr), m_pIpcSvr(nullptr), m_pLoaderMgr(nullptr)
+{
+	m_bDebugPrint = false;
+	m_bIniValid = true;
+	m_vecIpcs.clear();
+	m_vecIpcs.clear();
+	StandByDirectory();
+}
+
+CTestMgr::~CTestMgr()
+{
+	m_vecIpcs.clear();
+	DeleteInstance();
+}
+
+void CTestMgr::StandByDirectory()
+{
+	char* env_run = getenv(ATRUN_DIR_ENV);
+	QString os_path = "";
+	QString run_path = "";
+	if( env_run != NULL )
+	{
+		run_path = QString(env_run);
+	}
+	else
+	{
+		run_path = tr("%1/%2").arg(QDir::home().absolutePath()).arg("atsystem");
+	}
+
+	QDir::setCurrent( run_path );
+	m_sCurrentDir = run_path;
+	//qDebug() << "Working Directory : " << run_path;
+}
+
+void CTestMgr::Terminate(int code)
+{
+	QThread::msleep( 100 );
+	qApp->exit( code );
+}
+
+void CTestMgr::DeleteInstance()
+{
+	emit SigStopLoaderMgr();
+
+	if( m_pLoaderMgrTh )
+	{
+		m_pLoaderMgrTh->quit();
+		m_pLoaderMgrTh->wait();
+	}
+	if( m_pIpcSvr )
+	{
+		if( m_pIpcSvr->isListening() )
+			m_pIpcSvr->close();
+		QLocalServer::removeServer( IPC_INFO::IPC_TESTMGR_SOCK );
+		delete m_pIpcSvr;
+		m_pIpcSvr = nullptr;
+	}
+	if( m_pTcpSvr )
+	{
+		if( m_pTcpSvr->isListening() )
+			m_pTcpSvr->close();
+		delete m_pTcpSvr;
+		m_pTcpSvr = nullptr;
+	}
+	if( m_pLogger )
+	{
+		delete m_pLogger;
+		m_pLogger = nullptr;
+	}
+	for( CLocalClient* pClient : m_vecIpcs )
+	{
+		pClient->deleteLater();
+	}}
+
+void CTestMgr::CreateInstance()
+{
+	m_pLogger      = new CLogger( PROTOCOL::SOURCE_TYPE::_ATMGR );
+	m_pIpcSvr      = new CLocalServer( this );
+	m_pTcpSvr      = new CTcpServer( this );
+	m_pLoaderMgr   = new CLoaderMgr();
+	m_pLogger->SetLogDir( m_sCurrentDir );
+	m_pLogger->SetDebugPrint( m_bDebugPrint );
+	connect( this     , &CTestMgr::SigSaveLog                , m_pLogger, &CLogger::SlotLogMessage    );
+	connect( m_pIpcSvr, &CLocalServer::SigIncommingConnection, this     , &CTestMgr::SlotIpcConnected );	//ui
+	connect( m_pTcpSvr, &CTcpServer::SigIncommingConnection  , this     , &CTestMgr::SlotPgmConnected );	//pgm
+
+	emit SigSaveLog( LOG_TYPE::_NORMAL_LOG, tr("%1").arg(ATMGR_VERSION) );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \brief CTestMgr::run
+/// \param argc
+/// \param argv
+/// \return
+/// \details TestMgr Main Method
+int CTestMgr::run( int argc, char* argv[] )
+{
+	QCoreApplication app(argc, argv);
+
+	qRegisterMetaType<stTcpElement>("stTcpElement");
+	qRegisterMetaType<stIpcElement>("stIpcElement");
+	qRegisterMetaType<LOG_TYPE>("LOG_TYPE");
+	qRegisterMetaType<stSlotInfo>("stSlotInfo");
+	qRegisterMetaType<stSlotLive>("stSlotLive");
+
+	qRegisterMetaType<QLocalSocket::LocalSocketError>("LocalSocketError");
+
+	if( argc > 1 )
+	{
+		for (int i = 1; i < argc; i++)
+		{
+			if ( strncasecmp(argv[i], "-D"  , 2) == 0 )
+			{
+				m_bDebugPrint  = true;
+			}
+			else if ( strncasecmp(argv[i], "/D"  , 2) == 0 )
+			{
+				m_bDebugPrint  = true;
+			}
+		}
+	}
+	CreateInstance();
+	RunLocalServer();
+	if( LoadSlotMaskIni() )
+	{
+		RunPgmTcpServer();
+		RunTcpLoaderManager();
+	}
+	else
+	{
+		m_bIniValid = false;
+	}
+	return app.exec();
+}
+
+bool CTestMgr::LoadSlotMaskIni()
+{
+	char* env_os  = getenv(ATOS_DIR_ENV);
+	bool bOk = true;
+	QString os_path = "";
+	QString section_key = "";
+	QString sValue = 0x0;
+	int nValue = 0x0;
+
+	if( env_os != NULL )
+	{
+		os_path = QString(env_os);
+	}
+	else
+	{
+		os_path = DEFAULT_OS_DIR;
+	}
+	QString ini = tr("%1/%2/%3").arg(os_path).arg(CONFIG_DIR).arg(SITE_INI);
+
+	//MAX_SLOT
+	section_key = tr("%1/%2").arg(SECTION_SITE_COMMON).arg(KEY_SITE_MAX_SLOT);
+	if( !UTIL::INI::readSettings( ini, section_key, nValue ) )
+	{
+		m_stSlotInfo.nMaxSlot = MAX_SLOT;
+		bOk = false;
+	}
+	else
+	{
+		m_stSlotInfo.nMaxSlot = nValue;
+	}
+
+	//CPU_PER_SLOT
+	section_key = tr("%1/%2").arg(SECTION_SITE_COMMON).arg(KEY_SITE_CPU_PER_SLOT);
+	if( !UTIL::INI::readSettings( ini, section_key, nValue ) )
+	{
+		m_stSlotInfo.nCpuPerSlot = 1;
+		bOk = false;
+	}
+	else
+	{
+		m_stSlotInfo.nCpuPerSlot = nValue;
+	}
+
+	//PGM_PER_SLOT
+	section_key = tr("%1/%2").arg(SECTION_SITE_COMMON).arg(KEY_SITE_PGM_PER_SLOT);
+	if( !UTIL::INI::readSettings( ini, section_key, nValue ) )
+	{
+		m_stSlotInfo.nPgmPerSlot = 2;
+		bOk = false;
+	}
+	else
+	{
+		m_stSlotInfo.nPgmPerSlot = nValue;
+	}
+
+	for( int i=0;i<m_stSlotInfo.nMaxSlot;i++ )
+	{
+		QString key_mask = tr("SLOT%1/%2").arg(i+1).arg(KEY_SITE_SLOT_MASK);
+		QString key_ip1  = tr("SLOT%1/%2").arg(i+1).arg(KEY_SITE_CPU1_IP);
+		QString key_ip2  = tr("SLOT%1/%2").arg(i+1).arg(KEY_SITE_CPU2_IP);
+
+		//SLOT MASK
+		if( !UTIL::INI::readSettings( ini, key_mask, nValue ) )
+		{
+			m_stSlotInfo.SlotIp[i].bMask = true;
+		}
+		else
+		{
+			m_stSlotInfo.SlotIp[i].bMask = (nValue>0)?true:false;
+		}
+
+		//CPU IP1
+		if( !UTIL::INI::readSettings( ini, key_ip1, sValue ) )
+		{
+			snprintf( m_stSlotInfo.SlotIp[i].szCpu1Ip, sizeof(m_stSlotInfo.SlotIp[i].szCpu1Ip), "%s.%d", KEY_SITE_CPU_IP_START, i+1 );
+			UTIL::INI::writeSettings( ini, key_ip1, QString(m_stSlotInfo.SlotIp[i].szCpu1Ip) );
+		}
+		else
+		{
+			snprintf( m_stSlotInfo.SlotIp[i].szCpu1Ip, sizeof(m_stSlotInfo.SlotIp[i].szCpu1Ip), "%s", sValue.toStdString().c_str() );
+		}
+		if( m_stSlotInfo.nCpuPerSlot == 2 )
+		{
+			//CPU IP2
+			if( !UTIL::INI::readSettings( ini, key_ip2, sValue ) )
+			{
+				snprintf( m_stSlotInfo.SlotIp[i].szCpu2Ip, sizeof(m_stSlotInfo.SlotIp[i].szCpu2Ip), "%s.%d", KEY_SITE_CPU_IP_START, i+1+m_stSlotInfo.nMaxSlot );
+				UTIL::INI::writeSettings( ini, key_ip2, QString(m_stSlotInfo.SlotIp[i].szCpu2Ip) );
+			}
+			else
+			{
+				snprintf( m_stSlotInfo.SlotIp[i].szCpu2Ip, sizeof(m_stSlotInfo.SlotIp[i].szCpu2Ip), "%s", sValue.toStdString().c_str() );
+			}
+		}
+	}
+
+	return bOk;
+}
+
+//Main Ui
+bool CTestMgr::RunLocalServer()
+{
+	bool bListen = true;
+	if( m_pIpcSvr->isListening() ) return true;
+
+	const int RETRY_COUNT = 10;
+	int retry = 0;
+	QLocalServer::removeServer( IPC_INFO::IPC_TESTMGR_SOCK );
+	do
+	{
+		if( !m_pIpcSvr->listen( IPC_INFO::IPC_TESTMGR_SOCK ) )
+		{
+			m_pIpcSvr->close();
+			bListen = false;			
+		}
+		else
+		{
+			bListen = true;
+			break;
+		}
+		usleep( 500 );
+	}while( retry++ < RETRY_COUNT );
+	if( retry >= RETRY_COUNT )
+	{
+		emit SigSaveLog( LOG_TYPE::_ERROR_LOG , tr("IPC Server(%1) Listen NG!").arg(IPC_INFO::IPC_TESTMGR_SOCK) );
+	}
+	else
+	{
+		emit SigSaveLog( LOG_TYPE::_NORMAL_LOG , tr("IPC Server(%1) Listen OK!").arg(IPC_INFO::IPC_TESTMGR_SOCK) );
+	}
+	return bListen;
+}
+
+//Test Pgm
+bool CTestMgr::RunPgmTcpServer()
+{
+	bool bListen = true;
+	if( m_pTcpSvr->isListening() ) return true;
+	const int RETRY_COUNT = 10;
+	int retry = 0;
+	do
+	{
+		if( !m_pTcpSvr->listen( QHostAddress::AnyIPv4, TCP_PORT::EWS_TESTMGR_PGM_PORT ) )
+		{
+			m_pTcpSvr->close();
+			bListen = false;
+		}
+		else
+		{
+			bListen = true;
+			break;
+		}
+		usleep( 500 );
+	}while( retry++ < RETRY_COUNT );
+	if( retry >= RETRY_COUNT )
+	{
+		emit SigSaveLog( LOG_TYPE::_ERROR_LOG , tr("TCP Server(%1) Listen NG!").arg(TCP_PORT::EWS_TESTMGR_PGM_PORT) );
+	}
+	else
+	{
+		emit SigSaveLog( LOG_TYPE::_NORMAL_LOG, tr("TCP Server(%1) Listen OK!").arg(TCP_PORT::EWS_TESTMGR_PGM_PORT) );
+	}
+
+	return bListen;
+}
+
+//16 Slot CPU Loader
+bool CTestMgr::RunTcpLoaderManager()
+{
+	m_pLoaderMgrTh = new QThread;
+	m_pLoaderMgr->moveToThread( m_pLoaderMgrTh );
+	m_pLoaderMgr->SetSlotInfo( m_stSlotInfo );
+
+	connect( m_pLoaderMgrTh , &QThread::finished                 , m_pLoaderMgr, &QObject::deleteLater             );
+	connect( m_pLoaderMgr   , &CLoaderMgr::SigLogMessage         , this        , &CTestMgr::SlotLoaderLogMessage   );
+	connect( m_pLoaderMgr   , &CLoaderMgr::SigLoaderAckConnSlots , this        , &CTestMgr::SlotAckLoaderConnSlots );
+	connect( this           , &CTestMgr::SigRunLoaderMgr         , m_pLoaderMgr, &CLoaderMgr::SlotRun              );
+	connect( this           , &CTestMgr::SigStopLoaderMgr        , m_pLoaderMgr, &CLoaderMgr::SlotStop             );
+	m_pLoaderMgrTh->start();
+
+	emit SigSaveLog( LOG_TYPE::_NORMAL_LOG , tr("Loader Manager Start!") );
+	emit SigRunLoaderMgr();
+
+	return m_pLoaderMgrTh->isRunning();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \brief CTestMgr::SlotIpcConnected
+/// \param ptr
+/// \details MAIN UI connected
+void CTestMgr::SlotIpcConnected(quintptr handle)
+{
+	CLocalClient* pIpcClient = new CLocalClient( handle );
+	connect( pIpcClient, &CLocalClient::SigIpcConnectionStatus , this      , &CTestMgr::SlotIpcStatusChanged );
+	connect( pIpcClient, &CLocalClient::SigIpcRecvPacket       , this      , &CTestMgr::SlotIpcRecvPacket    );
+	connect( pIpcClient, &CLocalClient::SigIpcLogMessage       , this      , &CTestMgr::SlotIpcLogMessage    );
+	connect( this      , &CTestMgr::SigIpcSendPacket           , pIpcClient, &CLocalClient::SlotSendPacket   );
+	m_vecIpcs.push_back( pIpcClient );
+	emit SigSaveLog( _NORMAL_LOG, tr("%1 Connected!").arg(ATMAIN_NAME) );
+}
+
+void CTestMgr::SlotIpcStatusChanged( bool bConn )
+{
+	if( !bConn )
+	{
+		CLocalClient* pClient = qobject_cast<CLocalClient*>(QObject::sender());
+		if( pClient != nullptr )
+		{
+			m_vecIpcs.removeOne( pClient );
+			pClient->deleteLater();
+			emit SigSaveLog( _NORMAL_LOG, tr("%1 Disconnected!").arg(ATMAIN_NAME) );
+		}
+	}
+	else
+	{
+		emit SigSaveLog( _NORMAL_LOG, "MAIN UI Connected!" );
+	}
+}
+
+//MGR <- UI
+void CTestMgr::SlotIpcRecvPacket( stIpcElement element )
+{
+	int nDataSize = element.ipcHeader.datalen;
+	switch( element.ipcHeader.cmd )
+	{
+		case PROTOCOL::CMD_SLOT_INFO_REQ:		//UI -> MGR
+			//qInfo() << "CMD_SLOT_INFO_REQ";
+			AckSlotInfo( element );
+			break;
+		case PROTOCOL::CMD_LIVE_SLOT_REQ:
+			//qInfo() << "CMD_LIVE_CHECK_REQ";
+			AckSlotLive(element);
+			break;
+		case PROTOCOL::CMD_LOADER_INFO_REQ:
+			qInfo() << "CMD_LOADER_INFO_REQ";
+			break;
+		case PROTOCOL::CMD_SETUP_BIBID_REQ:
+			qInfo() << "CMD_SETUP_BIBID_REQ";
+			break;
+		case PROTOCOL::CMD_PGM_LOAD_REQ:
+			qInfo() << "CMD_PGM_LOAD_REQ";
+			break;
+		case PROTOCOL::CMD_PGM_RELOAD_REQ:
+			qInfo() << "CMD_PGM_RELOAD_REQ";
+			break;
+		case PROTOCOL::CMD_VERSION_REQ:
+			qInfo() << "CMD_VERSION_REQ";
+			AckVersion( element );
+			break;
+		default:
+			qInfo() << "CMD_UNKNOWN";
+			break;
+	}
+	if( nDataSize > 0 )
+	{
+		delete[] element.pData;
+		element.pData = nullptr;
+	}
+}
+
+//MGR <- UI
+void CTestMgr::SlotIpcLogMessage( LOG_TYPE t, QString s)
+{
+	qInfo() << __FUNCTION__ <<  " : " << s;
+}
+
+//atslot.ini info ack
+bool CTestMgr::AckSlotInfo( stIpcElement& unused )
+{
+	(void)unused;
+
+	stIpcHeader header;
+	header.cmd  = PROTOCOL::CMD_SLOT_INFO_ACK;
+	header.src  = PROTOCOL::_ATMGR;
+	header.dest = PROTOCOL::_ATMAIN_UI;
+	header.datalen = sizeof(stSlotInfo);
+	uint size = sizeof(stIpcHeader) + header.datalen;
+	char* pBuf = new char[ size ];
+	memcpy( pBuf                    , (char*)&header, sizeof(stIpcHeader) );
+	memcpy( pBuf+sizeof(stIpcHeader), &m_stSlotInfo , header.datalen      );
+	emit SigIpcSendPacket( pBuf, size );
+	return true;
+}
+
+//cpu(loader) connection info ack
+bool CTestMgr::AckSlotLive( stIpcElement& unused )
+{
+	(void)unused;
+
+	stIpcHeader header;
+	header.cmd  = PROTOCOL::CMD_LIVE_SLOT_ACK;
+	header.src  = PROTOCOL::_ATMGR;
+	header.dest = PROTOCOL::_ATMAIN_UI;
+	header.datalen = sizeof(stSlotLive);
+	uint size = sizeof(stIpcHeader) + header.datalen;
+	char* pBuf = new char[ size ];
+	memcpy( pBuf                    , (char*)&header, sizeof(stIpcHeader) );
+	memcpy( pBuf+sizeof(stIpcHeader), &m_stSlotLive , header.datalen      );
+	emit SigIpcSendPacket( pBuf, size );
+	return true;
+}
+
+//mgr version info ack
+bool CTestMgr::AckVersion( stIpcElement& unused )
+{
+	(void)unused;
+
+	char szBuf[64] = {0x0,};
+	memset( szBuf, 0x0, sizeof(szBuf) );
+	snprintf( szBuf, sizeof(szBuf), "%s[%s]", ATMGR_VER, ATMGR_DATE );
+	szBuf[strlen(szBuf)+1]='\0';
+	stIpcHeader header;
+	header.cmd  = PROTOCOL::CMD_VERSION_ACK;
+	header.src  = PROTOCOL::_ATMGR;
+	header.dest = PROTOCOL::_ATMAIN_UI;
+	header.datalen = strlen(szBuf)+1;
+	uint size = sizeof(stIpcHeader) + header.datalen;
+	char* pBuf = new char[ size ];
+	memcpy( pBuf                    , (char*)&header, sizeof(stIpcHeader) );
+	memcpy( pBuf+sizeof(stIpcHeader), szBuf         , header.datalen      );
+	emit SigIpcSendPacket( pBuf, size );
+	return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \brief CTestMgr::SlotTcpConnected
+/// \param handle
+/// \details Slot(Site) Pgm connected
+void CTestMgr::SlotPgmConnected(quintptr handle)
+{
+	CTcpClient* pTcpClient = new CTcpClient( handle );
+	QString client_ip = pTcpClient->GetHostIp().trimmed();
+
+	bool bValidIp = false;
+	for( int i=0;i<m_stSlotInfo.nMaxSlot;i++ )
+	{
+		stSlotIp ip = m_stSlotInfo.SlotIp[i];
+		QString ip1 = QString(ip.szCpu1Ip).trimmed();
+		QString ip2 = QString(ip.szCpu2Ip).trimmed();
+		if( ip1 == client_ip )
+		{
+			if( !ip.bMask )
+			{
+				bValidIp = true;
+				break;
+			}
+			//error mask
+		}
+		if( m_stSlotInfo.nCpuPerSlot == 2 )
+		{
+			if( ip2 == client_ip )
+			{
+				if( !ip.bMask )
+					bValidIp = true;
+				break;
+			}
+		}
+	}
+	if( bValidIp )
+	{
+		connect( pTcpClient, &CTcpClient::SigStatusChanged , this, &CTestMgr::SlotPgmStatusChanged );
+		connect( pTcpClient, &CTcpClient::SigReceivePacket , this, &CTestMgr::SlotPgmRecvPacket    );
+		m_vecTcps.push_back( pTcpClient );
+	}
+}
+
+void CTestMgr::SlotPgmStatusChanged(bool bConn)
+{
+	if( !bConn )
+	{
+		CTcpClient* pClient = qobject_cast<CTcpClient*>(QObject::sender());
+		if( pClient != nullptr )
+		{
+			m_vecTcps.removeOne( pClient );
+			pClient->deleteLater();
+		}
+	}
+}
+
+void CTestMgr::SlotPgmRecvPacket( stTcpElement emt )
+{
+	switch( emt.tcpHeader.cmd )
+	{
+		case PROTOCOL::CMD_SLOT_CPU_INFO:
+		break;
+	}
+}
+
+void CTestMgr::SlotPgmLogMesage( LOG_TYPE t, QString s )
+{
+	//emit SigSaveLog( t, s );
+}
+
+void CTestMgr::SlotAckLoaderConnSlots( stSlotLive slotlive )
+{
+	memcpy( &m_stSlotLive, &slotlive, sizeof(stSlotLive) );
+	printf("MAX SLOT : %d\n", m_stSlotInfo.nMaxSlot );
+	for( int s=0;s<m_stSlotInfo.nMaxSlot;s++ )
+	{
+		if( m_stSlotLive.slot_status[s][CPU00] ==  EN_SLOT_MASK )
+		{
+			printf("SLOT%d  mask\n", s );
+		}
+		else
+		{
+			if( m_stSlotLive.slot_status[s][CPU00] != EN_SLOT_ONLINE )
+			{
+				printf("SLOT%d CPU00  offline\n", s );
+			}
+			if( m_stSlotLive.cpu2x )
+			{
+				if( m_stSlotLive.slot_status[s][CPU01] != EN_SLOT_ONLINE )
+				{
+					printf("SLOT%d CPU01  offline\n", s );
+				}
+			}
+		}
+	}
+}
+
+void CTestMgr::SlotLoaderRecvPacket( int s, int cpu, stTcpElement element )
+{
+
+}
+
+void CTestMgr::SlotLoaderLogMessage( LOG_TYPE t, QString s )
+{
+	//emit SigSaveLog( t, s );
+}

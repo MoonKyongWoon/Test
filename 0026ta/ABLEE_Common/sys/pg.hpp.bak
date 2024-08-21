@@ -1,0 +1,252 @@
+#ifndef PG_HPP
+#define PG_HPP
+
+#include <iostream>
+#include <map>
+#include <utility>
+#include "testlib_global.h"
+#include "bitchart.hpp"
+#include "sys.hpp"
+#include "systype.hpp"
+#include "patcl.hpp"		//pgc lib
+#include "util.hpp"
+
+enum TOK_PAT
+{
+	TOKEN_SPACE          ,
+	TOKEN_LETTER         ,
+	TOKEN_DIGIT          ,
+	TOKEN_PUNC           ,
+	TOKEN_SDEF           ,
+	TOKEN_SEMICOLON      ,
+	TOKEN_EOL            ,
+	TOKEN_EOF            ,
+};
+
+typedef struct _tok_struct
+{
+	TOK_PAT     t;
+	atstring    s;     //line string
+	uint32_t    l;     //line number
+} tok_stuct;
+
+#define CPE_DELAY_DEFAULT		(1)
+
+class TESTLIBSHARED_EXPORT CPg
+{
+public:
+    CPg();
+	~CPg();
+public:
+	void InitRegisterStr();
+	void InitPins();
+    void InitPg();
+	void InitPinoutEnable();
+public:
+	bool SetGlobalRegister( int, ull64 );
+	bool ClearGlobalRegister();
+	void PrintGlobalReg();
+	bool ClearGlobalSetDSet();
+	void PrintGlobalSetDSet();
+public:
+	void AlpgClear();
+	void PllReset();
+	void DiagClear();
+	void DbmAddrClear();
+	void DrvClear();
+	void CmpClear();
+	void DfmClear();
+	void CpuReset();
+	void PeClear();				//2022.12.23 - kwmoon
+	void TpgIdelayCtrlReset();	//2022.12.01
+	void ChipClear( EN_LOGIC_TYPE );
+	void DrvCalibration( EN_LOGIC_TYPE );
+	void CpeMask( EN_LOGIC_TYPE, int );
+	void SetModule(bool);
+	void SetDrDelay( uint cycle );
+	void SetIoDelay( uint index, uint cycle );	//2022.12.03 - KWMOON
+	void SetDreDelay( uint index, uint cycle );	//2022.12.03 - KWMOON
+	void SetCpeDelay( uint index, uint cycle );	//2022.12.03 - KWMOON
+	void SetUclkDelay( uint cycle );			//2022.12.03 - KWMOON
+	void SetPeReadEnableSel(int);				//2022.12.03 - KWMOON
+	void SetEdqSel(uint);						//2022.12.03 - KWMOON
+	void SetDrDreSel(int);						//2023.02.02 - fatric
+
+public:
+	void InitModule();
+	void InitModuleIo();
+	void InitCyp();
+	bool WriteModule();
+	bool WriteCyp();
+//PinOut
+	void InitPinOutVal();	//2023.04.21 - fatric
+	void SetPinOutDrv (bool,uint begin=0,uint end=31);
+	void SetPinOutIoA (bool,uint begin=0,uint end=47);
+	void SetPinOutIoB (bool,uint begin=0,uint end=47);
+	void SetPinOutUclk(bool,uint begin=0,uint end=87);
+	void SetPinOutMio (bool,uint begin=0,uint end=1);
+	void SetPinOutScanMask1st(bool,uint begin=0,uint end=63);
+	void SetPinOutScanMask2nd(bool,uint begin=0,uint end=63);
+	void SetPinOutScanInv(bool,uint begin=0,uint end=63);
+	void SetPinOutDrv (uint,bool,uint begin=0,uint end=31);
+	void SetPinOutIoA (uint,bool,uint begin=0,uint end=47);
+	void SetPinOutIoB (uint,bool,uint begin=0,uint end=47);
+	void SetPinOutUclk(uint,bool,uint begin=0,uint end=87);
+
+//2023.04.21 - fatric
+	void SetPinOutDrvVal (bool,uint begin=0,uint end=31);
+	void SetPinOutDrvAct ();
+	void SetPinOutIoAVal (bool,uint begin=0,uint end=47);
+	void SetPinOutIoAAct ();
+	void SetPinOutIoBVal (bool,uint begin=0,uint end=47);
+	void SetPinOutIoBAct ();
+	void SetPinOutUclkVal(bool,uint begin=0,uint end=87);
+	void SetPinOutUclkAct();
+	void SetDrUclkFixDef();
+	void SetDrPinFixL();
+	void SetIoAPinFixL();
+	void SetIoBPinFixL();
+	void SetUclkPinFixL();
+
+//Mask
+public:
+	bool SetIoMaskGlobal( int mem, long long r, long long f );
+public:
+	bool PgStart();
+	bool PgStop();
+	///////////////////////////////////////////////////////////////////////////////
+	/// 2022.10.28 -  Appended by fatric.
+	bool StartMpat(const char*);
+	void ContinueMpat();
+	bool IsPgPause();
+	bool IsPgStop();
+	uint GetPgRunTime();		//Not yet implemented
+	void ClearPgRunTime();		//Not yet implemented
+	///////////////////////////////////////////////////////////////////////////////
+	uint GetBurstCode();
+	bool StartTPg();
+	bool StopTPg();
+	bool StopMpat();
+	bool ClearMpat();
+	bool SetPattern();
+	void SetCurrentPattern(atstring);
+	atstring GetCurrentPattern();
+	void SetIoDdrModeGlobal(bool);
+	void SetAddrDdrModeGlobal(bool);
+	bool GetIoDdrModeGlobal();
+	bool GetAddrDdrModeGlobal();
+	void DumpPattern();
+private:
+	void WritePattern();
+	bool WriteRegister( int );
+	bool WriteSetDSet ( int );
+	void ClrStiLdi();				//2023.06.13 - kwmoon(add fatric)
+//PGC
+public:
+	void ClearPattern();
+	void SendDefineFlag();
+	void SetDefine(const int,const char*);
+	void SetSub(const int,const char*,const char*);
+	bool Tokenize( const int,const char* );
+	tok_stuct& GetToken();
+private:
+	std::vector<tok_stuct> m_vecToken;
+	uint m_nCurrentTok;
+public:
+	CGlobalReg _IDX0, _IDX1, _IDX2 , _IDX3 , _IDX4 , _IDX5 , _IDX6 , _IDX7 , _IDX8 ;
+	CGlobalReg _IDX9, _IDX10, _IDX11, _IDX12, _IDX13, _IDX14, _IDX15;	//, _IDX16;
+	CGlobalReg _CFLAG, _ISP, _BAR, _MLOOP;
+//	CGlobalReg _D1B , _D1C  , _D1D  , _D1E  , _D1F  , _D1G  , _D1H  ;	//2023.06.13 - kwmoon(comment fatric)
+	CGlobalReg _D2B , _D2C  , _D2D  ;
+	CGlobalReg _LMAX, _HMAX, _XMAX, _YMAX, _ZMAX;
+	CGlobalReg _ND2 , _ND3 , _ND4 , _ND5  , _ND6 , _ND7 , _ND8 , _ND9 , _ND10, _ND11, _ND12 ;
+	CGlobalReg _ND13, _ND14, _ND15, _ND16 , _ND17, _ND18, _ND19, _ND20, _ND21, _ND22, _ND23 ;
+	CGlobalReg _ND24, _ND25, _ND26, _ND27 , _ND28, _ND29, _ND30, _ND31, _ND32;
+	CGlobalReg _BD2 , _BD3 , _BD4 , _BD5  , _BD6 , _BD7 , _BD8 , _BD9 , _BD10, _BD11, _BD12 ;
+	CGlobalReg _BD13, _BD14, _BD15, _BD16 , _BD17, _BD18, _BD19, _BD20, _BD21, _BD22, _BD23 ;
+	CGlobalReg _BD24, _BD25, _BD26, _BD27 , _BD28, _BD29, _BD30, _BD31, _BD32;
+	CGlobalReg _L1A , _L1B , _L1C  , _L1D  , _L1E  , _L1F  , _L1G  , _L1H ;
+	CGlobalReg _L2A , _L2B , _L2C  , _L2D  , _L2E  , _L2F  , _L2G  , _L2H ;
+	CGlobalReg _L3A , _L3B , _L3C  , _L3D  , _L3E  , _L3F  , _L3G  , _L3H ;
+	CGlobalReg _L4A , _L4B , _L4C  , _L4D  , _L4E  , _L4F  , _L4G  , _L4H ;
+	CGlobalReg _S1A, _V1A;
+
+	CGlobalSet _XH    , _YH    , _TP1  , _TP2  ;
+	CGlobalSet _D1A   , _D2A   , _TPH1 , _TPH2 ;
+	CGlobalSet _D3B   , _D4B   , _D5   , _D6   ;
+	CGlobalSet _NH    , _BH    , _DCMR1, _DCMR2;
+//	CGlobalSet          _ZH    , _XMASK, _YMASK;	//2023.06.13 - kwmoon(comment fatric)
+	CGlobalSet _D1B   , _ZH    , _XMASK, _YMASK;
+	CGlobalSet _XOS   , _YOS   , _CBMA , _DSC  ;
+	CGlobalSet _XT    , _YT    , _RCD  , _CCD  ;
+	CGlobalSet _ZD    , _Z     , _DSD  ;
+//	CGlobalSet _ND    , _BD    , _DBMAR;			//2023.06.13 - kwmoon(comment fatric)
+	CGlobalSet _D1C   , _BD    , _DBMAR;
+	CGlobalSet _DIGI1 , _DIGI2 , _DIGI3;
+	CGlobalSet _TPH1A , _TPH2A;
+	CGlobalSet _TPH1B , _TPH2B;
+	CGlobalSet _TPH1C , _TPH2C;
+	CGlobalSet _TPH1D , _TPH2D;
+
+public:
+	CPin  _PD0,  _PD1,  _PD2,  _PD3,  _PD4,  _PD5,  _PD6,  _PD7;
+	CPin  _PD8,  _PD9, _PD10, _PD11, _PD12, _PD13, _PD14, _PD15;
+	CPin _PD16, _PD17, _PD18, _PD19, _PD20, _PD21, _PD22, _PD23;
+	CPin _PD24, _PD25, _PD26, _PD27, _PD28, _PD29, _PD30, _PD31;
+	CPin _P0 , _P1 , _P2 , _P3 , _P4 , _P5 , _P6 , _P7 ;
+	CPin _P8 , _P9 , _P10, _P11, _P12, _P13, _P14, _P15;
+	CPin _P16, _P17, _P18, _P19, _P20, _P21, _P22, _P23;
+	CPin _P24, _P25, _P26, _P27, _P28, _P29, _P30, _P31;
+	CPin _P32, _P33, _P34, _P35, _P36, _P37, _P38, _P39;
+	CPin _P40, _P41, _P42, _P43, _P44, _P45, _P46, _P47;
+	CPin  _UCLK0,  _UCLK1,   _UCLK2,   _UCLK3,   _UCLK4,   _UCLK5,   _UCLK6,   _UCLK7;
+	CPin  _UCLK8,  _UCLK9,  _UCLK10,  _UCLK11,  _UCLK12,  _UCLK13,  _UCLK14,  _UCLK15;
+	CPin _UCLK16, _UCLK17,  _UCLK18,  _UCLK19,  _UCLK20,  _UCLK21,  _UCLK22,  _UCLK23;
+	CPin _UCLK24, _UCLK25,  _UCLK26,  _UCLK27,  _UCLK28,  _UCLK29,  _UCLK30,  _UCLK31;
+	CPin _UCLK32, _UCLK33,  _UCLK34,  _UCLK35,  _UCLK36,  _UCLK37,  _UCLK38,  _UCLK39;
+	CPin _UCLK40, _UCLK41,  _UCLK42,  _UCLK43,  _UCLK44,  _UCLK45,  _UCLK46,  _UCLK47;
+	CPin _UCLK48, _UCLK49,  _UCLK50,  _UCLK51,  _UCLK52,  _UCLK53,  _UCLK54,  _UCLK55;
+	CPin _UCLK56, _UCLK57,  _UCLK58,  _UCLK59,  _UCLK60,  _UCLK61,  _UCLK62,  _UCLK63;
+	CPin _UCLK64, _UCLK65,  _UCLK66,  _UCLK67,  _UCLK68,  _UCLK69,  _UCLK70,  _UCLK71;
+	CPin _UCLK72, _UCLK73,  _UCLK74,  _UCLK75,  _UCLK76,  _UCLK77,  _UCLK78,  _UCLK79;
+	CPin _UCLK80, _UCLK81,  _UCLK82,  _UCLK83,  _UCLK84,  _UCLK85,  _UCLK86,  _UCLK87;
+	CPin _DREL, _DRET, _DRDRE;
+	CPin _CPE0, _CPE1, _CPE2, _CPE3;
+	CPin _FMA0 , _FMA1 , _FMA2 , _FMA3 , _FMA4 , _FMA5 , _FMA6 , _FMA7 , _FMA8 , _FMA9 , _FMA10, _FMA11;
+	CPin _FMA12, _FMA13, _FMA14, _FMA15, _FMA16, _FMA17, _FMA18, _FMA19, _FMA20, _FMA21, _FMA22, _FMA23;
+	CPin _FMA24, _FMA25;	//Only Compile
+	CPin _MUT0 , _MUT1 , _MUT2 , _MUT3 , _MUT4 , _MUT5 , _MUT6 , _MUT7 , _MUT8 , _MUT9 , _MUT10, _MUT11;
+	CPin _MUT12, _MUT13, _MUT14, _MUT15;
+
+	std::vector<CPin*> m_vecPins;
+	SET_REG	m_SetReg[16];
+private:
+	bool m_bModule;
+	std::vector<REGI> m_vecGlobalReg;
+	std::vector<SET_REG> m_vecGlobalSet;
+	std::map< CGlobalReg*, std::string> m_mapRegStr;
+	std::map< CGlobalSet*, std::string> m_mapSetStr;
+	PGDATA* m_PGDATA;
+	int m_nPC;
+	bool m_bIoDdrMode;
+	bool m_bAddrDdrMode;
+
+	uint m_uPinoutDrv [ALL_FC][4];
+	uint m_uPinoutIoA [ALL_FC][6];
+	uint m_uPinoutIoB [ALL_FC][6];
+	uint m_uPinoutUclk[ALL_FC][11];
+	uint m_uPinoutMio [MAX_SYS_MIO];
+	uint m_ModulePD[8];
+	uint m_ModuleP[12];
+	uint m_ModuleUCLK[22];
+	uint m_ModuleDRE[1];
+	uint m_uDreSel;
+	uint m_uCpeHSel;
+	uint m_uCpeLSel;
+private:
+	CPatCl* m_pPgc;
+	std::vector<atstring> m_rVecError;
+	atstring m_sCurrentPattern;
+};
+
+#endif // PG_HPP

@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CSysPfm</class>
+ <widget class="QWidget" name="CSysPfm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>821</width>
+    <height>612</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QTabWidget" name="tab_pfm">
+     <property name="tabPosition">
+      <enum>QTabWidget::North</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="S1">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S1</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="CPfmTable" name="widget_table_1" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_2" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S2">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S2</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="CPfmTable" name="widget_table_3" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_4" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S3">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S3</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="CPfmTable" name="widget_table_5" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_6" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S4">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S4</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="CPfmTable" name="widget_table_7" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_8" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S5">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S5</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <item>
+        <widget class="CPfmTable" name="widget_table_9" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_10" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S6">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S6</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <item>
+        <widget class="CPfmTable" name="widget_table_11" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_12" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S7">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S7</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_8">
+       <item>
+        <widget class="CPfmTable" name="widget_table_13" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_14" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S8">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S8</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_9">
+       <item>
+        <widget class="CPfmTable" name="widget_table_15" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_16" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S9">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S9</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_10">
+       <item>
+        <widget class="CPfmTable" name="widget_table_17" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_18" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S10">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S10</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_11">
+       <item>
+        <widget class="CPfmTable" name="widget_table_19" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_20" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S11">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S11</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_12">
+       <item>
+        <widget class="CPfmTable" name="widget_table_21" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_22" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S12">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S12</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_13">
+       <item>
+        <widget class="CPfmTable" name="widget_table_23" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_24" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S13">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S13</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_14">
+       <item>
+        <widget class="CPfmTable" name="widget_table_25" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_26" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S14">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S14</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_15">
+       <item>
+        <widget class="CPfmTable" name="widget_table_27" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_28" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S15">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S15</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_16">
+       <item>
+        <widget class="CPfmTable" name="widget_table_29" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_30" native="true"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="S16">
+      <attribute name="icon">
+       <iconset>
+        <normaloff>../icon/black_marble.ico</normaloff>../icon/black_marble.ico</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>S16</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="CPfmTable" name="widget_table_31" native="true"/>
+       </item>
+       <item>
+        <widget class="CPfmTable" name="widget_table_32" native="true"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CPfmTable</class>
+   <extends>QWidget</extends>
+   <header>pfmtable.hpp</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

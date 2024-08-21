@@ -1,0 +1,44 @@
+#ifndef PROGRESSDLG_HPP
+#define PROGRESSDLG_HPP
+
+#include <QDialog>
+#include <QProgressBar>
+#include "sysdef.hpp"
+
+enum EN_PROGRESSDLG_COL
+{
+	COL_SLOT       ,
+	COL_PROGRESSBAR,
+	COL_TEXT       ,
+};
+
+
+namespace Ui {
+	class CProgressDlg;
+}
+
+class CProgressDlg : public QDialog
+{
+	Q_OBJECT
+
+public:
+	explicit CProgressDlg(QWidget *parent = nullptr);
+	~CProgressDlg();
+protected:
+	void resizeEvent(QResizeEvent *event);
+private:
+	void InitUi();
+	void CreateProgressView();
+	void InitPrgTable();
+	void InitProgress();
+	void InitStatusText();
+public slots:
+	void SlotProgressDlgInit();
+	void SlotProgressDlgValue( int, int);
+	void SlotProgressDlgText ( int, QString, bool error=false);
+private:
+	Ui::CProgressDlg *ui;
+	QProgressBar* m_prgBar[MAX_SLOT];
+};
+
+#endif // PROGRESSDLG_HPP

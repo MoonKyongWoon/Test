@@ -1,0 +1,193 @@
+#ifndef MAINUI_H
+#define MAINUI_H
+
+#include <QApplication>
+#include <QAction>
+#include <QCloseEvent>
+#include <QDebug>
+#include <QDesktopServices>
+#include <QDockWidget>
+#include <QHBoxLayout>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMainWindow>
+#include <QMessageBox>
+#include <QObject>
+#include <QStatusBar>
+#include <QSettings>
+#include <QStyleFactory>
+#include <QToolBar>
+#include <QTimer>
+#include <QTabWidget>
+#include <QThread>
+#include <QVBoxLayout>
+
+#include "common.hpp"
+#include "logger.hpp"
+#include "localsocket.hpp"
+#include "tcpserver.hpp"
+#include "tcpclient.hpp"
+#include "sysver.hpp"
+#include "statusbar.hpp"
+
+#include "masstab.hpp"
+#include "engrtab.hpp"
+#include "progressdlg.hpp"
+#include "setup.hpp"
+
+enum MAIN_TAB
+{
+	RUN_TAB,
+	ENGR_TAB,
+};
+
+enum EN_STATUS_LABEL
+{
+	STATUS_BAR_STATUS        ,
+	STATUS_BAR_STEP          ,
+	STATUS_BAR_SYS_NAME      ,
+	STATUS_BAR_MGR_VER       ,
+	MAX_STATUS_LABEL         ,
+};
+
+enum EN_TIMER_ID
+{
+	EN_TIMER_MGR_CON   = 0x0,
+	EN_TIMER_CHMB_CON       ,
+	EN_TIMER_PSMON_CON      ,
+};
+
+enum EN_TIMER_VALUE
+{
+	TIMER_MGR_VALUE    = 1000,
+	TIMER_SLOT_VALUE   = 1500,
+};
+
+enum EN_UI_STATUS
+{
+	UI_INIT          ,
+	UI_SETUP_DONE    ,
+	UI_LOAD_DONE     ,
+	UI_INIT_TEST_DONE,
+	UI_TESTING       ,
+	UI_TEST_DONE     ,
+	UI_TEST_JUMP     ,
+};
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+public:
+	void SetAutoMode(bool);
+private:
+	void RegisterMetaType();
+	void InitDirectory();
+    void InitVariable();
+    void InitUi();
+    void InitInstance();
+    void CreateToolbar();
+    void CreateStatusBar();
+    void CreateMassEngrTab();
+	void InitTimer();
+	void KillTimer();
+	void SetToolBarStatus(EN_UI_STATUS);
+	void SetStatusBarMessage( EN_STATUS_LABEL, QString );
+private:
+	void ReqGetMgrVersion();
+	void ReqInfoSlots();
+	void ReqLiveSlots();
+	bool DoSetupPrepare();
+	void DoSetup();
+	void AckInfoSlots(stIpcElement);
+	void AckLiveSlots(stIpcElement);
+protected:
+    void resizeEvent(QResizeEvent *event);
+    void closeEvent(QCloseEvent *event);
+	void showEvent(QShowEvent *event);
+signals:
+	void SigSlotStatusChanged( int, EN_SLOT_STAT );
+	void SigProgressDlgInit();
+	void SigProgressDlgValue( int, int);
+	void SigProgressDlgText ( int, QString, bool error=false);
+signals:
+	void SigMgrTmsStatusChanged( LED_DESC , bool );
+signals:
+	void SigSaveLog( LOG_TYPE, QString );
+	void SigIpcMgrConnect();
+	void SigIpcChmbConnect();
+	void SigIpcPsMonConnect();
+signals:
+	void SigLogMessage( LOG_TAB, LOG_TYPE, QString );
+	void SigIpcMgrSendPacket( char*, uint size );
+public slots:
+	void SlotActSetup();
+	void SlotActLoadPgm();
+	void SlotActReloadPgm();
+	void SlotActInitTest();
+	void SlotActTestStart();
+	void SlotActTestStop();
+	void SlotActJump();
+	void SlotActOTDelay();
+	void SlotActAlarm();
+	void SlotActJudge();
+	void SlotActMaintCall();
+	void SlotRunManualTabChanged(int);
+public slots:
+	void SlotSetupResult( bool, stSetupInfo );
+public slots:
+	void SlotTcpPgmLogConnected( qintptr );
+	void SlotIpcMgrIpcLogMessage (LOG_TYPE, QString);
+	void SlotIpcMgrIpcError ( QLocalSocket::LocalSocketError, QString );
+	void SlotIpcMgrConnectionStatus(bool);
+	void SlotIpcMgrRecvPacket( stIpcElement );
+	void SlotTimeoutMgrCon();
+	void SlotTimeoutSlotCon();
+	void SlotTimeoutChmbCon();
+	void SlotTimeoutPsMonCon();
+
+private:
+    QString m_sApplicationName;
+	EN_UI_STATUS m_UiStatus;
+private:
+    QMenu *m_pMenu;
+    QAction *m_pActSetup;
+    QAction *m_pActLoad;
+    QAction *m_pActReload;
+    QAction *m_pActInitTest;
+    QAction *m_pActTest;
+    QAction *m_pActStop;
+	QAction *m_pActJump;
+    QAction *m_pActOtDelay;
+    QAction *m_pActJudge;
+    QAction *m_pActMCall;
+    QAction *m_pActAlarm;
+private:
+	CStatusBar *m_pStatusBar;
+	QLabel* m_pStatusBarLabel[MAX_STATUS_LABEL];
+	QTabWidget *m_pTabWidget;
+    CMassTab* m_pMassView;
+    CEngrTab* m_pEngrView;
+	CSetup*   m_pSetupDlg;
+	CProgressDlg* m_pPrgDlg;
+private:
+	CLocalSocket* m_pMgrIpc;
+	QTimer* m_timerSlotCon;
+	QTimer* m_timerMgrCon;
+	QTimer* m_timerChmbCon;
+	QTimer* m_timerPsMonCon;
+
+private:
+	bool m_bAutoMode;
+	bool m_bInitialized;
+	bool m_bMgrConn;
+	stSlotInfo m_stSlotInfo;
+	stSlotLive m_stSlotLive;
+	QString m_sCurrentDir;
+	stSetupInfo m_stSetupInfo;
+};
+
+#endif // MAINUI_H

@@ -1,0 +1,103 @@
+#ifndef ENGRTAB_HPP
+#define ENGRTAB_HPP
+
+#include <QAction>
+#include <QDebug>
+#include <QMenu>
+#include <QPlainTextEdit>
+#include <QScrollBar>
+#include <QSettings>
+#include <QTableWidget>
+#include <QTableWidgetItem>
+#include <QWidget>
+#include "common.hpp"
+#include "commstruct.hpp"
+#include "syslog.hpp"
+#include "logger.hpp"
+#include "dutmap.hpp"
+
+#define DEFAULT_BIB_ROWS		(16)
+#define DEFAULT_BIB_COLS		(12)
+#define DEFAULT_SLOT_VIEW		( 8)
+
+namespace Ui {
+class CEngrTab;
+}
+
+enum LOG_TAB
+{
+	LOG_SYS,
+	LOG_CHAMBER,
+	LOG_SLOT1,
+	LOG_SLOT2,
+	LOG_SLOT3,
+	LOG_SLOT4,
+	LOG_SLOT5,
+	LOG_SLOT6,
+	LOG_SLOT7,
+	LOG_SLOT8,
+	LOG_SLOT9,
+	LOG_SLOT10,
+	LOG_SLOT11,
+	LOG_SLOT12,
+	LOG_SLOT13,
+	LOG_SLOT14,
+	LOG_SLOT15,
+	LOG_SLOT16,
+	LOG_MAX_TAB,
+};
+
+class CEngrTab : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit CEngrTab(QWidget *parent = nullptr);
+    ~CEngrTab();
+public:
+	void ResizeView();
+	void ResizeSlotView();
+	void ResizeBibMapView();
+private:
+	void InitVariables();
+	void InitUi();
+	void InitSigSlot();
+	void InitLogTextView();
+	void InitSlotView();
+	void InitSlotData(int);
+	void InitBibMapView();
+	void ReInitBibMapView(int,int);
+	void CreateBibDut();
+	void AppendTextEdit ( LOG_TAB, LOG_TYPE, QString );
+
+protected:
+	void resizeEvent(QResizeEvent *event);
+signals:
+	void SigSaveSysLog ( LOG_TYPE, QString );
+	void SigSaveChmbLog( LOG_TYPE, QString );
+	void SigSaveSlotLog( int, LOG_TYPE, QString );
+public slots:
+	void SlotCellOfBibMapClicked(int,int);
+	void SlotCellOfSlotClicked(int,int);
+	void SlotCustomContextMenuRequested( QPoint );
+	void SlotScrollStatusChanged();
+	void SlotSplitterMoved(int,int);
+public slots:
+	void SlotLogMessage( LOG_TAB, LOG_TYPE, QString );
+	void SlotSlotStatusChange( int, EN_SLOT_STAT );
+private:
+	QPlainTextEdit* m_pTextEdit[LOG_MAX_TAB];
+	QTableWidget* m_pSlotView[SLOT_VIEW_COUNT];
+	bool m_bAutoScroll[LOG_MAX_TAB];
+	CLogger*  m_pLoggerSys;
+	CLogger*  m_pLoggerChmb;
+	CLogger*  m_pLoggerSlot[MAX_SLOT];
+
+private:
+    Ui::CEngrTab *ui;
+private:
+	int m_nBibRows;
+	int m_nBibCols;
+};
+
+#endif // ENGRTAB_HPP

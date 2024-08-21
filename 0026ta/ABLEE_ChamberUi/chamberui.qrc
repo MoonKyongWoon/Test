@@ -1,0 +1,43 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qss/Medize.qss</file>
+        <file>qss/NeonButtons.qss</file>
+        <file>qss/PicPax.qss</file>
+        <file>qss/Ubuntu.qss</file>
+        <file>qss/WordOffice_m.qss</file>
+        <file>qss/MailSy.qss</file>
+        <file>icon/ablee.ico</file>
+        <file>icon/green_marble.ico</file>
+        <file>icon/next-arrow.ico</file>
+        <file>icon/ng.ico</file>
+        <file>icon/ok.ico</file>
+        <file>icon/red_marble.ico</file>
+        <file>icon/syspwr.ico</file>
+        <file>icon/unknown.ico</file>
+        <file>icon/ambient.ico</file>
+        <file>icon/temp.ico</file>
+        <file>icon/stop_circle.ico</file>
+        <file>icon/play.ico</file>
+        <file>icon/unlock.ico</file>
+        <file>icon/lock.ico</file>
+        <file>icon/in.ico</file>
+        <file>icon/out.ico</file>
+        <file>icon/touch.ico</file>
+        <file>icon/remote.ico</file>
+        <file>icon/doorlocksecuritysaveprivacy_109742.ico</file>
+        <file>icon/amb_auto.ico</file>
+        <file>icon/reset.ico</file>
+        <file>icon/stop.ico</file>
+        <file>icon/sv.ico</file>
+        <file>icon/amb.ico</file>
+        <file>icon/buzzeroff.ico</file>
+        <file>icon/buzzeron.ico</file>
+        <file>icon/auto.ico</file>
+        <file>icon/ramp_off.ico</file>
+        <file>icon/ramp_on.ico</file>
+        <file>icon/yellow_rectangle.ico</file>
+        <file>icon/green_rectangle.ico</file>
+        <file>icon/pause.ico</file>
+        <file>icon/record.ico</file>
+    </qresource>
+</RCC>

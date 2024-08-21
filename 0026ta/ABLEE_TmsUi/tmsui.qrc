@@ -1,0 +1,28 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file>icon/ablee.ico</file>
+        <file>icon/arrow_right.ico</file>
+        <file>icon/arrow-drop-down.ico</file>
+        <file>icon/arrow-drop-up.ico</file>
+        <file>icon/green_marble.ico</file>
+        <file>icon/red_marble.ico</file>
+        <file>icon/run.ico</file>
+        <file>icon/stop.ico</file>
+        <file>icon/reload0.ico</file>
+        <file>icon/stop_circle.ico</file>
+        <file>icon/settings.ico</file>
+        <file>icon/secslog.ico</file>
+        <file>icon/testlog.ico</file>
+        <file>icon/ok.ico</file>
+        <file>icon/auto.ico</file>
+        <file>icon/config.ico</file>
+    </qresource>
+    <qresource prefix="/qss">
+        <file>qss/Medize.qss</file>
+        <file>qss/Ubuntu.qss</file>
+        <file>qss/MailSy.qss</file>
+        <file>qss/Integrid.qss</file>
+        <file>qss/ConsoleStyle.qss</file>
+        <file>qss/WordOffice.qss</file>
+    </qresource>
+</RCC>

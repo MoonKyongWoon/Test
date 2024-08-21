@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qss/Aqua.qss</file>
+        <file>qss/ElegantDark.qss</file>
+        <file>qss/Integrid.qss</file>
+        <file>qss/Ubuntu.qss</file>
+        <file>icon/add.png</file>
+        <file>icon/media_controls_dark_play.png</file>
+        <file>icon/media_controls_dark_stop.png</file>
+        <file>icon/remove.png</file>
+        <file>icon/remove_minus_sign.png</file>
+        <file>icon/ethernet.ico</file>
+        <file>icon/stop.ico</file>
+        <file>icon/play.ico</file>
+        <file>icon/listen.ico</file>
+        <file>icon/corona.ico</file>
+    </qresource>
+</RCC>

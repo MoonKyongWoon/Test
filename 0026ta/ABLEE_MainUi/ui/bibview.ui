@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CBibView</class>
+ <widget class="QWidget" name="CBibView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>501</width>
+    <height>426</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>3</number>
+   </property>
+   <property name="leftMargin">
+    <number>1</number>
+   </property>
+   <property name="topMargin">
+    <number>1</number>
+   </property>
+   <property name="rightMargin">
+    <number>1</number>
+   </property>
+   <property name="bottomMargin">
+    <number>1</number>
+   </property>
+   <item>
+    <widget class="QComboBox" name="cboStep">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>24</height>
+      </size>
+     </property>
+     <property name="currentText">
+      <string/>
+     </property>
+     <property name="maxVisibleItems">
+      <number>5</number>
+     </property>
+     <property name="maxCount">
+      <number>10000</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTableWidget" name="tblBibMap">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>150</width>
+       <height>150</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>1024</width>
+       <height>1000</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>8</pointsize>
+      </font>
+     </property>
+     <property name="gridStyle">
+      <enum>Qt::SolidLine</enum>
+     </property>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>15</number>
+     </attribute>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>36</number>
+     </attribute>
+     <attribute name="verticalHeaderMinimumSectionSize">
+      <number>15</number>
+     </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>22</number>
+     </attribute>
+     <row>
+      <property name="text">
+       <string>R01</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R02</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R03</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R04</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R05</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R06</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R07</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R08</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R09</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R10</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R11</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R12</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R13</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R14</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R15</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>R16</string>
+      </property>
+     </row>
+     <column>
+      <property name="text">
+       <string>C01</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>C02</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>C03</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>C04</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>C05</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>C06</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>C07</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>C08</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>C09</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>C10</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>C11</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>C12</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="bLayoutBibButtons">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="btnNormal">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>55</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #84bcda;</string>
+       </property>
+       <property name="text">
+        <string>NORMAL</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnMaker">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>55</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #84bcda;</string>
+       </property>
+       <property name="text">
+        <string>MAKER</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnDevType">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>55</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #84bcda;</string>
+       </property>
+       <property name="text">
+        <string>DEV TYPE</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnFailCnt">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>55</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #84bcda;</string>
+       </property>
+       <property name="text">
+        <string>FAIL CNT</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnAddFail">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>55</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #84bcda;</string>
+       </property>
+       <property name="text">
+        <string>ADD FAIL</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnBin">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>55</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(132, 188, 218);</string>
+       </property>
+       <property name="text">
+        <string>BIN</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

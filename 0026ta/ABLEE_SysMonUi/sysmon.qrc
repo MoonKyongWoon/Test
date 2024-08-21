@@ -1,0 +1,23 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qss/Medize.qss</file>
+        <file>icon/arrow_right.ico</file>
+        <file>icon/checkbox_select.ico</file>
+        <file>icon/green_marble.ico</file>
+        <file>icon/next-arrow.ico</file>
+        <file>icon/ng.ico</file>
+        <file>icon/ok.ico</file>
+        <file>icon/red_marble.ico</file>
+        <file>icon/unknown.ico</file>
+        <file>icon/arrow_next_forward.ico</file>
+        <file>icon/ablee.ico</file>
+        <file>icon/syspwr.ico</file>
+        <file>qss/NeonButtons.qss</file>
+        <file>qss/PicPax.qss</file>
+        <file>qss/WordOffice_m.qss</file>
+        <file>qss/MailSy.qss</file>
+        <file>qss/Ubuntu.qss</file>
+        <file>icon/black_marble.ico</file>
+        <file>icon/smps.ico</file>
+    </qresource>
+</RCC>

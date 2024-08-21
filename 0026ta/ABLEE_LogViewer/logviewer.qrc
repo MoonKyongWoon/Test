@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file>icon/ablee.ico</file>
+        <file>icon/arrow_right.ico</file>
+        <file>icon/arrow-drop-down.ico</file>
+        <file>icon/arrow-drop-up.ico</file>
+        <file>icon/green_marble.ico</file>
+        <file>icon/red_marble.ico</file>
+        <file>icon/run.ico</file>
+        <file>icon/stop.ico</file>
+        <file>icon/reload0.ico</file>
+        <file>icon/stop_circle.ico</file>
+    </qresource>
+    <qresource prefix="/qss">
+        <file>qss/Medize.qss</file>
+    </qresource>
+</RCC>

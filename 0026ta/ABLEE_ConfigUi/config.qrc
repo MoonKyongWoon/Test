@@ -1,0 +1,20 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icon/ablee.ico</file>
+        <file>qss/Medize.qss</file>
+        <file>icon/alarm.ico</file>
+        <file>icon/auto.ico</file>
+        <file>icon/chamber.ico</file>
+        <file>icon/system.ico</file>
+        <file>icon/tcp.ico</file>
+        <file>icon/ftp.ico</file>
+        <file>icon/server.ico</file>
+        <file>icon/site.ico</file>
+        <file>icon/tms.ico</file>
+        <file>icon/reload0.ico</file>
+        <file>icon/ok.ico</file>
+        <file>icon/arrow-drop-up.ico</file>
+        <file>icon/arrow-drop-down.ico</file>
+        <file>icon/arrow_right.ico</file>
+    </qresource>
+</RCC>

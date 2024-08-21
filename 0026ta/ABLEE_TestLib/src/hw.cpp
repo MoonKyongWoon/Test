@@ -1,0 +1,817 @@
+#include <chrono>
+#include <thread>
+#include "hw.hpp"
+#include "io.hpp"
+#include "log.hpp"
+#include "sys.hpp"
+#include "bitchart.hpp"
+
+extern CLog  g_log;
+extern CPcie g_pcie;
+extern CSys  g_sys;
+
+CHw::CHw()
+{
+	m_bVihChanged = true;
+	AdcEmtInit();
+}
+
+bool CHw::HwInit()
+{
+	//fprintf( stdout, "HwInit...\n");
+	AdcInit();
+	DacInit();
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ADC
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CHw::AdcEmtInit()
+{
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	//// FC1/2 - SYSTEM VOLTAGE MUX/ADC MAP
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	//MUX0
+	m_stAdcEmt[FC_12][MUX_AGND][ADC_CH0] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_AGND][ADC_CH1] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_AGND][ADC_CH2] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_AGND][ADC_CH3] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_AGND][ADC_CH4] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_AGND][ADC_CH5] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_AGND][ADC_CH6] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_AGND][ADC_CH7] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+
+	//MUX1
+	m_stAdcEmt[FC_12][MUX_V2_5P][ADC_CH0] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V2_5P][ADC_CH1] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V2_5P][ADC_CH2] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V2_5P][ADC_CH3] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V2_5P][ADC_CH4] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V2_5P][ADC_CH5] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V2_5P][ADC_CH6] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V2_5P][ADC_CH7] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+
+	//MUX2
+	m_stAdcEmt[FC_12][MUX_V5_0P][ADC_CH0] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V5_0P][ADC_CH1] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V5_0P][ADC_CH2] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V5_0P][ADC_CH3] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V5_0P][ADC_CH4] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V5_0P][ADC_CH5] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V5_0P][ADC_CH6] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_12][MUX_V5_0P][ADC_CH7] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+
+	//MUX3
+	m_stAdcEmt[FC_12][MUX_GND][ADC_CH0] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_GND][ADC_CH1] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_GND][ADC_CH2] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_GND][ADC_CH3] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_GND][ADC_CH4] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_GND][ADC_CH5] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_GND][ADC_CH6] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_12][MUX_GND][ADC_CH7] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+
+	//MUX4
+	m_stAdcEmt[FC_12][MUX_SYS_V20P][ADC_CH0] = stAdcEmt{ "V20P_HV1A", 20.0, 3.0, 5.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V20P][ADC_CH1] = stAdcEmt{ "V20P_HV1B", 20.0, 3.0, 5.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V20P][ADC_CH2] = stAdcEmt{ "V20P_HV2A", 20.0, 3.0, 5.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V20P][ADC_CH3] = stAdcEmt{ "V20P_HV2B", 20.0, 3.0, 5.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V20P][ADC_CH4] = stAdcEmt{ "V12P_HC1A", 12.0, 2.0, 5.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V20P][ADC_CH5] = stAdcEmt{ "V12P_HC1B", 12.0, 2.0, 5.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V20P][ADC_CH6] = stAdcEmt{ "V12P_PL1" , 12.0, 2.0, 5.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V20P][ADC_CH7] = stAdcEmt{ "V12P_PL2" , 12.0, 2.0, 5.0 };
+
+	//MUX5
+	m_stAdcEmt[FC_12][MUX_SYS_V48P][ADC_CH0] = stAdcEmt{ "V48P1"   , 48.0, 11.0, 10.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V48P][ADC_CH1] = stAdcEmt{ "V5P"     ,  5.0,  1.0,  3.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V48P][ADC_CH2] = stAdcEmt{ "V5N1"    , -5.0,  2.0, 10.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V48P][ADC_CH3] = stAdcEmt{ "V3.3P"   ,  3.3,  1.0,  3.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V48P][ADC_CH4] = stAdcEmt{ "V2.5P"   ,  2.5,  1.0,  3.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V48P][ADC_CH5] = stAdcEmt{ "V1.8P1"  ,  1.8,  1.0,  3.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V48P][ADC_CH6] = stAdcEmt{ "V1.8P_PL",  1.8,  1.0,  3.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V48P][ADC_CH7] = stAdcEmt{ "V1.2P1"  ,  1.2,  1.0,  3.0 };
+
+	//MUX6
+	m_stAdcEmt[FC_12][MUX_SYS_V1_0P][ADC_CH0] = stAdcEmt{ "V1.0P"      ,  1.0 , 1.0,  3.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V1_0P][ADC_CH1] = stAdcEmt{ "V0.95P"     ,  0.95, 1.0,  3.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V1_0P][ADC_CH2] = stAdcEmt{ "V0.6P"      ,  0.6 , 1.0,  3.0 };
+	m_stAdcEmt[FC_12][MUX_SYS_V1_0P][ADC_CH3] = stAdcEmt{ "VREF_V5.0P" ,  5.0 , 1.0,  0.2 };
+	m_stAdcEmt[FC_12][MUX_SYS_V1_0P][ADC_CH4] = stAdcEmt{ "VREF_V2.5P" ,  2.5 , 1.0,  0.2 };
+	m_stAdcEmt[FC_12][MUX_SYS_V1_0P][ADC_CH5] = stAdcEmt{ "VREF_V1.25P",  1.25, 1.0,  0.2 };
+	m_stAdcEmt[FC_12][MUX_SYS_V1_0P][ADC_CH6] = stAdcEmt{ "VREF_V1.0P" ,  1.0 , 1.0,  0.2 };
+	m_stAdcEmt[FC_12][MUX_SYS_V1_0P][ADC_CH7] = stAdcEmt{ "VREF_V0.6P" ,  0.6 , 1.0,  0.2 };
+
+	//MUX7 - NO DIAG
+	m_stAdcEmt[FC_12][MUX_VIH][ADC_CH0] = stAdcEmt{ "FC12_VIH1"   ,  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_VIH][ADC_CH1] = stAdcEmt{ "FC12_VIH2"   ,  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_VIH][ADC_CH2] = stAdcEmt{ "FC12_VOH1"   ,  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_VIH][ADC_CH3] = stAdcEmt{ "FC12_VOH2"   ,  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_VIH][ADC_CH4] = stAdcEmt{ "FC12_VCC_MIO",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_VIH][ADC_CH5] = stAdcEmt{ "FC12_DIAG"   ,  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_VIH][ADC_CH6] = stAdcEmt{ "GND"         ,  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_VIH][ADC_CH7] = stAdcEmt{ "GND"         ,  0.0, 1.0,  0.0 };
+
+	//MUX8 - NO DIAG
+	m_stAdcEmt[FC_12][MUX_PPS_F][ADC_CH0] = stAdcEmt{ "PPS01_F_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_F][ADC_CH1] = stAdcEmt{ "PPS02_F_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_F][ADC_CH2] = stAdcEmt{ "PPS03_F_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_F][ADC_CH3] = stAdcEmt{ "PPS04_F_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_F][ADC_CH4] = stAdcEmt{ "PPS05_F_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_F][ADC_CH5] = stAdcEmt{ "PPS06_F_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_F][ADC_CH6] = stAdcEmt{ "PPS07_F_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_F][ADC_CH7] = stAdcEmt{ "PPS08_F_VM",  0.0, 1.0,  0.0 };
+
+	//MUX9 - NO DIAG
+	m_stAdcEmt[FC_12][MUX_PPS_S][ADC_CH0] = stAdcEmt{ "PPS01_S_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_S][ADC_CH1] = stAdcEmt{ "PPS02_S_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_S][ADC_CH2] = stAdcEmt{ "PPS03_S_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_S][ADC_CH3] = stAdcEmt{ "PPS04_S_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_S][ADC_CH4] = stAdcEmt{ "PPS05_S_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_S][ADC_CH5] = stAdcEmt{ "PPS06_S_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_S][ADC_CH6] = stAdcEmt{ "PPS07_S_VM",  0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_S][ADC_CH7] = stAdcEmt{ "PPS08_S_VM",  0.0, 1.0,  0.0 };
+
+	//MUX10 - NO DIAG
+	m_stAdcEmt[FC_12][MUX_S1PS_F][ADC_CH0] = stAdcEmt{ "S1PS01_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_F][ADC_CH1] = stAdcEmt{ "S1PS02_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_F][ADC_CH2] = stAdcEmt{ "S1PS03_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_F][ADC_CH3] = stAdcEmt{ "S1PS04_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_F][ADC_CH4] = stAdcEmt{ "S1PS05_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_F][ADC_CH5] = stAdcEmt{ "S1PS06_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_F][ADC_CH6] = stAdcEmt{ "S1PS07_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_F][ADC_CH7] = stAdcEmt{ "S1PS08_F_VM", 0.0, 1.0,  0.0 };
+
+	//MUX11 - NO DIAG
+	m_stAdcEmt[FC_12][MUX_S1PS_S][ADC_CH0] = stAdcEmt{ "S1PS01_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_S][ADC_CH1] = stAdcEmt{ "S1PS02_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_S][ADC_CH2] = stAdcEmt{ "S1PS03_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_S][ADC_CH3] = stAdcEmt{ "S1PS04_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_S][ADC_CH4] = stAdcEmt{ "S1PS05_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_S][ADC_CH5] = stAdcEmt{ "S1PS06_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_S][ADC_CH6] = stAdcEmt{ "S1PS07_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_S1PS_S][ADC_CH7] = stAdcEmt{ "S1PS08_S_VM", 0.0, 1.0,  0.0 };
+
+	//MUX12 - NO DIAG
+	m_stAdcEmt[FC_12][MUX_PPS_GND1][ADC_CH0] = stAdcEmt{ "PPS_GND_SEN1" , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND1][ADC_CH1] = stAdcEmt{ "S1PS_GND_SEN1", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND1][ADC_CH2] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND1][ADC_CH3] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND1][ADC_CH4] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND1][ADC_CH5] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND1][ADC_CH6] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND1][ADC_CH7] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+
+	//MUX13 - NO DIAG
+	m_stAdcEmt[FC_12][MUX_PPS_GND2][ADC_CH0] = stAdcEmt{ "PPS_GND_SEN1" , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND2][ADC_CH1] = stAdcEmt{ "S1PS_GND_SEN1", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND2][ADC_CH2] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND2][ADC_CH3] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND2][ADC_CH4] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND2][ADC_CH5] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND2][ADC_CH6] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND2][ADC_CH7] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+
+	//MUX14 - NO DIAG
+	m_stAdcEmt[FC_12][MUX_PPS_GND3][ADC_CH0] = stAdcEmt{ "PPS_GND_SEN1" , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND3][ADC_CH1] = stAdcEmt{ "S1PS_GND_SEN1", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND3][ADC_CH2] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND3][ADC_CH3] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND3][ADC_CH4] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND3][ADC_CH5] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND3][ADC_CH6] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND3][ADC_CH7] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+
+	//MUX15 - NO DIAG
+	m_stAdcEmt[FC_12][MUX_PPS_GND4][ADC_CH0] = stAdcEmt{ "PPS_GND_SEN1" , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND4][ADC_CH1] = stAdcEmt{ "S1PS_GND_SEN1", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND4][ADC_CH2] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND4][ADC_CH3] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND4][ADC_CH4] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND4][ADC_CH5] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND4][ADC_CH6] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_12][MUX_PPS_GND4][ADC_CH7] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+
+
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	//// FC3/4 - SYSTEM VOLTAGE MUX/ADC MAP
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	//MUX0
+	m_stAdcEmt[FC_34][MUX_AGND][ADC_CH0] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_AGND][ADC_CH1] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_AGND][ADC_CH2] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_AGND][ADC_CH3] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_AGND][ADC_CH4] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_AGND][ADC_CH5] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_AGND][ADC_CH6] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_AGND][ADC_CH7] = stAdcEmt{ "AGND", 0.0, 1.0, 50 MV };
+
+	//MUX1
+	m_stAdcEmt[FC_34][MUX_V2_5P][ADC_CH0] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V2_5P][ADC_CH1] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V2_5P][ADC_CH2] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V2_5P][ADC_CH3] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V2_5P][ADC_CH4] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V2_5P][ADC_CH5] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V2_5P][ADC_CH6] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V2_5P][ADC_CH7] = stAdcEmt{ "V2.5P", 2.5, 1.0, 3.0 };
+
+	//MUX2
+	m_stAdcEmt[FC_34][MUX_V5_0P][ADC_CH0] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V5_0P][ADC_CH1] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V5_0P][ADC_CH2] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V5_0P][ADC_CH3] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V5_0P][ADC_CH4] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V5_0P][ADC_CH5] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V5_0P][ADC_CH6] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+	m_stAdcEmt[FC_34][MUX_V5_0P][ADC_CH7] = stAdcEmt{ "V5.0P", 5.0, 1.0, 3.0 };
+
+	//MUX3
+	m_stAdcEmt[FC_34][MUX_GND][ADC_CH0] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_GND][ADC_CH1] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_GND][ADC_CH2] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_GND][ADC_CH3] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_GND][ADC_CH4] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_GND][ADC_CH5] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_GND][ADC_CH6] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+	m_stAdcEmt[FC_34][MUX_GND][ADC_CH7] = stAdcEmt{ "GND", 0.0, 1.0, 50 MV };
+
+	//MUX4
+	m_stAdcEmt[FC_34][MUX_SYS_V20P][ADC_CH0] = stAdcEmt{ "V20P_HV3A", 20.0, 3.0, 5.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V20P][ADC_CH1] = stAdcEmt{ "V20P_HV3B", 20.0, 3.0, 5.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V20P][ADC_CH2] = stAdcEmt{ "V20P_HV4A", 20.0, 3.0, 5.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V20P][ADC_CH3] = stAdcEmt{ "V20P_HV4B", 20.0, 3.0, 5.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V20P][ADC_CH4] = stAdcEmt{ "V12P_HC2A", 12.0, 2.0, 5.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V20P][ADC_CH5] = stAdcEmt{ "V12P_HC2B", 12.0, 2.0, 5.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V20P][ADC_CH6] = stAdcEmt{ "V12P_PL1" , 12.0, 2.0, 5.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V20P][ADC_CH7] = stAdcEmt{ "V12P_PL2" , 12.0, 2.0, 5.0 };
+
+	//MUX5
+	m_stAdcEmt[FC_34][MUX_SYS_V48P][ADC_CH0] = stAdcEmt{ "V48P1"   , 48.0, 11.0, 10.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V48P][ADC_CH1] = stAdcEmt{ "V5P"     ,  5.0,  1.0,  3.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V48P][ADC_CH2] = stAdcEmt{ "V5N2"    , -5.0,  2.0, 10.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V48P][ADC_CH3] = stAdcEmt{ "V3.3P"   ,  3.3,  1.0,  3.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V48P][ADC_CH4] = stAdcEmt{ "V2.5P"   ,  2.5,  1.0,  3.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V48P][ADC_CH5] = stAdcEmt{ "V1.8P2"  ,  1.8,  1.0,  3.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V48P][ADC_CH6] = stAdcEmt{ "V1.8P_PL",  1.8,  1.0,  3.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V48P][ADC_CH7] = stAdcEmt{ "V1.2P2"  ,  1.2,  1.0,  3.0 };
+
+	//MUX6
+	m_stAdcEmt[FC_34][MUX_SYS_V1_0P][ADC_CH0] = stAdcEmt{ "V1.0P"      , 1.0 , 1.0,  3.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V1_0P][ADC_CH1] = stAdcEmt{ "V0.95P"     , 0.95, 1.0,  3.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V1_0P][ADC_CH2] = stAdcEmt{ "V0.6P"      , 0.6 , 1.0,  3.0 };
+	m_stAdcEmt[FC_34][MUX_SYS_V1_0P][ADC_CH3] = stAdcEmt{ "VREF_V5.0P" , 5.0 , 1.0,  0.2 };
+	m_stAdcEmt[FC_34][MUX_SYS_V1_0P][ADC_CH4] = stAdcEmt{ "VREF_V2.5P" , 2.5 , 1.0,  0.2 };
+	m_stAdcEmt[FC_34][MUX_SYS_V1_0P][ADC_CH5] = stAdcEmt{ "VREF_V1.25P", 1.25, 1.0,  0.2 };
+	m_stAdcEmt[FC_34][MUX_SYS_V1_0P][ADC_CH6] = stAdcEmt{ "VREF_V1.0P" , 1.0 , 1.0,  0.2 };
+	m_stAdcEmt[FC_34][MUX_SYS_V1_0P][ADC_CH7] = stAdcEmt{ "VREF_V0.6P" , 0.6 , 1.0,  0.2 };
+
+	//MUX7 - NO DIAG
+	m_stAdcEmt[FC_34][MUX_VIH][ADC_CH0] = stAdcEmt{ "FC34_VIH1"   , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_VIH][ADC_CH1] = stAdcEmt{ "FC34_VIH2"   , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_VIH][ADC_CH2] = stAdcEmt{ "FC34_VOH1"   , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_VIH][ADC_CH3] = stAdcEmt{ "FC34_VOH2"   , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_VIH][ADC_CH4] = stAdcEmt{ "FC34_VCC_MIO", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_VIH][ADC_CH5] = stAdcEmt{ "FC34_DIAG"   , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_VIH][ADC_CH6] = stAdcEmt{ "GND"         , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_VIH][ADC_CH7] = stAdcEmt{ "GND"         , 0.0, 1.0,  0.0 };
+
+	//MUX8 - NO DIAG
+	m_stAdcEmt[FC_34][MUX_PPS_F][ADC_CH0] = stAdcEmt{ "PPS09_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_F][ADC_CH1] = stAdcEmt{ "PPS10_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_F][ADC_CH2] = stAdcEmt{ "PPS11_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_F][ADC_CH3] = stAdcEmt{ "PPS12_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_F][ADC_CH4] = stAdcEmt{ "PPS13_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_F][ADC_CH5] = stAdcEmt{ "PPS14_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_F][ADC_CH6] = stAdcEmt{ "PPS15_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_F][ADC_CH7] = stAdcEmt{ "PPS16_F_VM", 0.0, 1.0,  0.0 };
+
+	//MUX9 - NO DIAG
+	m_stAdcEmt[FC_34][MUX_PPS_S][ADC_CH0] = stAdcEmt{ "PPS09_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_S][ADC_CH1] = stAdcEmt{ "PPS10_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_S][ADC_CH2] = stAdcEmt{ "PPS11_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_S][ADC_CH3] = stAdcEmt{ "PPS12_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_S][ADC_CH4] = stAdcEmt{ "PPS13_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_S][ADC_CH5] = stAdcEmt{ "PPS14_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_S][ADC_CH6] = stAdcEmt{ "PPS15_S_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_S][ADC_CH7] = stAdcEmt{ "PPS16_S_VM", 0.0, 1.0,  0.0 };
+
+	//MUX10 - NO DIAG
+	m_stAdcEmt[FC_34][MUX_S1PS_F][ADC_CH0] = stAdcEmt{ "S1PS09_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_F][ADC_CH1] = stAdcEmt{ "S1PS10_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_F][ADC_CH2] = stAdcEmt{ "S1PS11_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_F][ADC_CH3] = stAdcEmt{ "S1PS12_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_F][ADC_CH4] = stAdcEmt{ "S1PS13_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_F][ADC_CH5] = stAdcEmt{ "S1PS14_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_F][ADC_CH6] = stAdcEmt{ "S1PS15_F_VM", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_F][ADC_CH7] = stAdcEmt{ "S1PS16_F_VM", 0.0, 1.0,  0.0 };
+
+	//MUX11 - NO DIAG
+	m_stAdcEmt[FC_34][MUX_S1PS_S][ADC_CH0] = stAdcEmt{ "S1PS09_S_VM", 0.0,  1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_S][ADC_CH1] = stAdcEmt{ "S1PS10_S_VM", 0.0,  1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_S][ADC_CH2] = stAdcEmt{ "S1PS11_S_VM", 0.0,  1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_S][ADC_CH3] = stAdcEmt{ "S1PS12_S_VM", 0.0,  1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_S][ADC_CH4] = stAdcEmt{ "S1PS13_S_VM", 0.0,  1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_S][ADC_CH5] = stAdcEmt{ "S1PS14_S_VM", 0.0,  1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_S][ADC_CH6] = stAdcEmt{ "S1PS15_S_VM", 0.0,  1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_S1PS_S][ADC_CH7] = stAdcEmt{ "S1PS16_S_VM", 0.0,  1.0,  0.0 };
+
+	//MUX12 - NO DIAG
+	m_stAdcEmt[FC_34][MUX_PPS_GND1][ADC_CH0] = stAdcEmt{ "PPS_GND_SEN2" , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND1][ADC_CH1] = stAdcEmt{ "S1PS_GND_SEN2", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND1][ADC_CH2] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND1][ADC_CH3] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND1][ADC_CH4] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND1][ADC_CH5] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND1][ADC_CH6] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND1][ADC_CH7] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+
+	//MUX13 - NO DIAG
+	m_stAdcEmt[FC_34][MUX_PPS_GND2][ADC_CH0] = stAdcEmt{ "PPS_GND_SEN2" , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND2][ADC_CH1] = stAdcEmt{ "S1PS_GND_SEN2", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND2][ADC_CH2] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND2][ADC_CH3] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND2][ADC_CH4] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND2][ADC_CH5] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND2][ADC_CH6] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND2][ADC_CH7] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+
+	//MUX14 - NO DIAG
+	m_stAdcEmt[FC_34][MUX_PPS_GND3][ADC_CH0] = stAdcEmt{ "PPS_GND_SEN2" , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND3][ADC_CH1] = stAdcEmt{ "S1PS_GND_SEN2", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND3][ADC_CH2] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND3][ADC_CH3] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND3][ADC_CH4] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND3][ADC_CH5] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND3][ADC_CH6] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND3][ADC_CH7] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+
+	//MUX15 - NO DIAG
+	m_stAdcEmt[FC_34][MUX_PPS_GND4][ADC_CH0] = stAdcEmt{ "PPS_GND_SEN2" , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND4][ADC_CH1] = stAdcEmt{ "S1PS_GND_SEN2", 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND4][ADC_CH2] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND4][ADC_CH3] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND4][ADC_CH4] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND4][ADC_CH5] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND4][ADC_CH6] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+	m_stAdcEmt[FC_34][MUX_PPS_GND4][ADC_CH7] = stAdcEmt{ "GND"          , 0.0, 1.0,  0.0 };
+}
+
+stAdcEmt CHw::GetAdcEmt( uint myfc, uint mux, uint ch )
+{
+	if( (mux > ADC_MUX_MAX) || ( ch > ADC_CH_MAX) )
+	{
+		return stAdcEmt{ "INVALID_MUX_CH", 0.0, 1.0,  0.0 };
+	}
+	return m_stAdcEmt[myfc][mux][ch];
+}
+
+void CHw::AdcInit()
+{
+	AdcClear();
+	AdcReset();
+}
+
+void CHw::AdcReset()
+{
+	g_pcie.write_user( BITCHART::DRV_UCLK::_ADC_RESET, 0x1 );
+	g_sys.SysDelay( 100 US );
+}
+
+void CHw::AdcClear()
+{
+	g_pcie.write_user( BITCHART::DRV_UCLK::_ADC_CLEAR, 0x1 );
+	g_sys.SysDelay( 100 US );
+}
+
+void CHw::AdcMuxSet(int mux)
+{
+	g_pcie.write_user( BITCHART::DRV_UCLK::_ADC_MUX, mux );
+	g_sys.SysDelay( 100 US );
+}
+
+void CHw::AdcTransfer()
+{
+	g_pcie.write_user( BITCHART::DRV_UCLK::_ADC_DATA_TRANSFER, 0x1 );
+	g_sys.SysDelay( 100 US );
+}
+
+bool CHw::IsAdcBusy()
+{
+	if( g_pcie.read_user( BITCHART::DRV_UCLK::_ADC_BYSY ) & 0x1 )
+		return true;
+	return false;
+}
+
+bool CHw::AdcConvStart()
+{
+	int nWaitCount = 0;
+	g_pcie.write_user( BITCHART::DRV_UCLK::_ADC_CONV_START, 0x1 );
+	g_sys.SysDelay( 100 US );
+	while( IsAdcBusy() )
+	{
+		g_sys.SysDelay( 100 US );
+		nWaitCount++;
+		if( nWaitCount > 10 ) return false;
+	}
+	return true;
+}
+
+void CHw::AdcRead(uint mux, double dMeas[MAX_ADC], uint sampleing )
+{
+	double dRead[MAX_ADC] = {0.0, };
+	for( uint nTimes=0;nTimes<sampleing;nTimes++ )
+	{
+		AdcMuxSet( mux );
+		AdcConvStart();
+		AdcTransfer();
+		for( int nAdc=0;nAdc<MAX_ADC;nAdc++ )
+		{
+			int nHigh = g_pcie.read_user( BITCHART::DRV_UCLK::_ADC_CH1_READ_H +(nAdc*8) ) & 0xFF;
+			int nLow  = g_pcie.read_user( BITCHART::DRV_UCLK::_ADC_CH1_READ_L +(nAdc*8) ) & 0xFF;
+			int nData = ((nHigh<<8) | nLow) & 0xFFFF;
+			short sData  = static_cast<short>( nData&0xFFFF );
+			double dMeas = sData * ADC_RESOLUTION;
+			dRead[nAdc] += dMeas;
+			//fprintf( stdout, "ADC MUX:%d, CH:%d READ:0x%04X[%6.2f]\n", mux, nAdc, sData&0xFFFF, dMeas );
+		}
+	}
+	for( int nAdc=0;nAdc<MAX_ADC;nAdc++ )
+	{
+		dMeas[nAdc] = dRead[nAdc] / sampleing;
+	}
+	AdcMuxSet( MUX_GND );
+}
+
+double CHw::AdcRead(uint mux, uint adc, uint sampleing )
+{
+	double dRead[MAX_ADC] = {0.0, };
+	AdcRead( mux, dRead, sampleing );
+	return dRead[adc];
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// DAC
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CHw::DacInit()
+{
+	SetDacHwClear();
+}
+
+void CHw::SetDacReset()
+{
+	int nCmd   = RESET;
+	int nAddr  = 0x0;	//don't care
+	int nCode  = 0x0;
+
+	DacWrite( nCmd, nAddr, nCode);
+}
+
+bool CHw::IsValidDacCh(int ch)
+{
+	bool IsValid = true;
+		 if( ch == DAC_ALL ) IsValid = false;
+	else if( (ch<DAC_A) || (ch>DAC_H) ) IsValid = false;
+
+	if( !IsValid )
+		g_log.EPrintf( _HW, "DAC", "%s(%d) : DAC Ch%d is invalid number![%d~%d or 0x%X]", __FUNCTION__, __LINE__, ch, DAC_A, DAC_H, DAC_ALL );
+	return IsValid;
+}
+
+bool CHw::IsValidVout( int ch, double vout)
+{
+	//fprintf( stdout, "IsValidVout CH:%d VOUT:%5.2f V\n", ch, vout );
+	switch( ch )
+	{
+		case DAC_A:	//VIH1
+			if( (vout<DAC_VIH1_MIN) || (vout>DAC_VIH1_MAX) )
+			{
+				g_log.EPrintf( _HW, "DAC", "%s(%d) : VIH1 %5.2f V is invalid! [%5.2f V ~ %5.2f V]", __FUNCTION__, __LINE__, vout, DAC_VIH1_MIN, DAC_VIH1_MAX );
+				return false;
+			}
+			break;
+		case DAC_B:	//VIH2(MIO)
+			if( (vout<DAC_VIH2_MIN) || (vout>DAC_VIH2_MAX) )
+			{
+				g_log.EPrintf( _HW, "DAC", "%s(%d) : VIH2 %5.2f V is invalid! [%5.2f V ~ %5.2f V]", __FUNCTION__, __LINE__, vout, DAC_VIH2_MIN, DAC_VIH2_MAX );
+				return false;
+			}
+			break;
+		case DAC_C:	//VOH1
+			if( (vout<DAC_VOH1_MIN) || (vout>DAC_VOH1_MAX) )
+			{
+				g_log.EPrintf( _HW, "DAC", "%s(%d) : VOH1 %5.2f V is invalid! [%5.2f V ~ %5.2f V]", __FUNCTION__, __LINE__, vout, DAC_VOH1_MIN, DAC_VOH1_MAX );
+				return false;
+			}
+			break;
+		case DAC_D: //VOH2(MIO)
+			if( (vout<DAC_VOH2_MIN) || (vout>DAC_VOH2_MAX) )
+			{
+				g_log.EPrintf( _HW, "DAC", "%s(%d) : VOH2 %5.2f V is invalid! [%5.2f V ~ %5.2f V]", __FUNCTION__, __LINE__, vout, DAC_VOH2_MIN, DAC_VOH2_MAX );
+				return false;
+			}
+			break;
+		case DAC_CMP_IN: //20220928
+			if( (vout<DAC_CMP_IN_MIN) || (vout>DAC_CMP_IN_MAX) )
+			{
+				g_log.EPrintf( _HW, "DAC", "%s(%d) : COMP_IN %5.2f V is invalid! [%5.2f V ~ %5.2f V]", __FUNCTION__, __LINE__, vout, DAC_VOH2_MIN, DAC_VOH2_MAX );
+				return false;
+			}
+			break;
+		default:
+			if( (vout<DAC_DEFAULT_MIN) || (vout>DAC_VREFIN) )
+			{
+				g_log.EPrintf( _HW, "DAC", "%s(%d) : DAC%d VOUT %5.2f V is invalid! [%5.2f V ~ %5.2f V]", __FUNCTION__, __LINE__, ch, vout, DAC_VOH2_MIN, DAC_VOH2_MAX );
+				return false;
+			}
+			break;
+	}
+	return true;
+}
+
+void CHw::DacWrite( int nCmd, int nAddr, int nData )
+{
+	g_pcie.write_user( BITCHART::DRV_UCLK::_DAC_CMD_ADDR , (nCmd<<4)|nAddr );
+	g_pcie.write_user( BITCHART::DRV_UCLK::_DAC_WDATA_H  , (nData>>8)&0xFF );
+	g_pcie.write_user( BITCHART::DRV_UCLK::_DAC_WDATA_L  , (nData>>0)&0xFF );
+	g_pcie.write_user( BITCHART::DRV_UCLK::_DAC_WRITE_REQ, 0x1 );
+	g_sys.SysDelay( 100 US );
+}
+
+/////////////////////////////////////////////////////////////////////
+/// \brief CHw::SetDacVout
+/// \param ch
+/// \param voltage
+/// \details input register update
+bool CHw::SetDacVout(int ch, double voltage)
+{
+	int nCmd   = WRITE_TO_INPUT_REG;
+	int nDacs  = ch;
+	int nVout  = 0x0;
+
+	//fprintf( stdout, "SetDacVout CH%d VOUT:%5.2f\n", ch, voltage );
+	if( !IsValidVout( ch, voltage) )
+	{
+		return false;
+	}
+	if( !IsValidDacCh(ch) )
+	{
+		g_log.EPrintf( _HW, "DAC", "%s(%d) : DAC Ch%d is invalid!", __FUNCTION__, __LINE__, ch );
+		return false;
+	}
+	if( ch == DAC_VIH2 )
+		nVout = static_cast<int>( DAC_VOUT(voltage/DAC_VIH2_GAIN) ) & 0xFFFF;
+	else
+		nVout = static_cast<int>( DAC_VOUT(voltage) ) & 0xFFFF;	
+	DacWrite( nCmd, nDacs, nVout );
+
+	//2023.10.10 - KWMOON
+	if( ch == DAC_VIH1 )
+	{
+		if( voltage > 0.1 )
+		{
+			if( m_dVih != voltage ) m_bVihChanged = true;	//2023.10.23 - KWMOON
+			else                    m_bVihChanged = false;	//2023.10.23 - KWMOON
+			m_dVih = voltage;
+		}
+	}
+	else if( ch == DAC_VOH1 )
+	{
+		m_dVth = voltage;
+	}
+	else
+	{}
+	return true;
+}
+
+/////////////////////////////////////////////////////////////////////
+/// \brief CHw::SetDacUpdate
+/// \param ch
+/// \details ldac update register
+bool CHw::SetDacUpdate(int ch)
+{
+	int nCmd   = UPDATE_DAC_REGISTER;
+	int nAddr  = ch;	//
+	int nData  = 0x0;
+	if( !IsValidDacCh(ch) )
+	{
+		g_log.EPrintf( _HW, "DAC", "%s(%d) : DAC Ch%d is invalid!", __FUNCTION__, __LINE__, ch );
+		return false;
+	}
+	DacWrite( nCmd, nAddr, nData );
+	return true;
+}
+
+/////////////////////////////////////////////////////////////////////
+/// \brief CHw::SetDacSwClear
+/// \param code
+/// \details can be used in system calibration to load zero scale,
+///          midscale, or full scale to all channels together
+///          data low DB0, DB1 - clear code register
+void CHw::SetDacSwClear(DAC_CLEAR_CODE code)
+{
+	int nCmd   = LOAD_CLEAR_CODE;
+	int nAddr  = 0x0;	//don't care
+	int nCode  = code;
+
+	DacWrite( nCmd, nAddr, nCode);
+}
+
+bool CHw::SetDacPwrDown(int ch, DAC_POWER_DOWN_MODE mode)
+{
+	int nCmd   = POWER_DOWN_UP_DAC;
+	int nAddr  = 0x0;	//don't care
+	int nMode  = (mode<<8);
+	int nDacs  = (1<<ch);
+	if( !IsValidDacCh(ch) )
+	{
+		g_log.EPrintf( _HW, "DAC", "%s(%d) : DAC Ch%d is invalid!", __FUNCTION__, __LINE__, ch );
+		return false;
+	}
+
+	DacWrite( nCmd, nAddr, nMode|nDacs );
+	return true;
+}
+
+/////////////////////////////////////////////////////////////////////
+/// \brief CHw::SetDacHwLoad
+/// \details bitchart load - h/w pin
+void CHw::SetDacHwLoad()
+{
+	g_pcie.write_user( BITCHART::DRV_UCLK::_DAC_LOAD, 0x1 );
+	g_sys.SysDelay( 50 US );
+}
+
+/////////////////////////////////////////////////////////////////////
+/// \brief CHw::SetDacHwClear
+/// \details bitchart clr - h/w pin
+void CHw::SetDacHwClear()
+{
+	g_pcie.write_user( BITCHART::DRV_UCLK::_DAC_CLEAR, 0x1 );
+	g_sys.SysDelay( 50 US );
+}
+
+//2023.10.10 - KWMOON
+double CHw::GetSetVih()
+{
+	return m_dVih;
+}
+
+//2023.10.10 - KWMOON
+double CHw::GetSetVth()
+{
+	return m_dVth;
+}
+
+//2023.10.23 - KWMOON
+bool CHw::IsVihChanged()
+{
+	return m_bVihChanged;
+}
+
+bool CHw::MeasVih1( double& rMeas )
+{
+	rMeas = AdcRead( ADC_MUX::MUX_VIH, ADC_CH0, 10 );
+	return true;
+}
+
+bool CHw::MeasVth1( double& rMeas )
+{
+	rMeas = AdcRead( ADC_MUX::MUX_VIH, ADC_CH2, 10 );
+	return true;
+}
+
+bool CHw::MeasMioVolt(double& rMeasVih, double& rMeasVoh )
+{
+	return MeasVih2( rMeasVih, rMeasVoh );
+}
+
+bool CHw::MeasVih2(double& rMeasVih, double& rMeasVoh )
+{
+	//fprintf( stdout, "[%s]\n",__FUNCTION__ );
+	double dMeas[MAX_ADC]={0.0,};
+	AdcRead( ADC_MUX::MUX_VIH, dMeas, 10 );
+	rMeasVih = dMeas[ADC_CH1]*2;
+	rMeasVoh = dMeas[ADC_CH3];
+	return true;
+}
+
+bool CHw::MeasVoutDiag( double& rMeas )
+{
+	rMeas = AdcRead( ADC_MUX::MUX_VIH, ADC_CH5, 10 );
+	return true;
+}
+
+bool CHw::MeasMioVcc( double& rMeas )
+{
+	rMeas = AdcRead( ADC_MUX::MUX_VIH, ADC_CH4 );
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// EEPROM
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool CHw::IsValidEepromAddr(int nAddr )
+{
+	if( (nAddr<0) || (nAddr>MAX_EEPROM_ADDR) )
+	{
+		g_log.EPrintf( _HW, "EEPROM", "ADDR(0x%04X) is invlaid, use between[0x%04X~0x%04X]\n",
+				 nAddr, 0x0, MAX_EEPROM_ADDR );
+		return false;
+	}
+	return true;
+}
+
+void CHw::EepromWren()
+{
+	g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_INS, CMD_WREN  );
+	g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_ADDR_H   , 0x0 );	//don't care
+	g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_ADDR_L   , 0x0 );	//don't care
+	g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_DATA     , 0x0 );	//don't care
+	g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_WRITE_REQ, 0x1 );
+	g_sys.SysDelay( 150 US );
+}
+
+//2024.02.13 - KWMOON
+void CHw::EepromWrdi()
+{
+	g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_INS, CMD_WRDI  );
+	g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_ADDR_H   , 0x0 );	//don't care
+	g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_ADDR_L   , 0x0 );	//don't care
+	g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_DATA     , 0x0 );	//don't care
+	g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_WRITE_REQ, 0x1 );
+	g_sys.SysDelay( 150 US );
+}
+
+bool CHw::IsEepromReady()
+{
+	int nWait = 0;
+	while( nWait < 10 )
+	{
+		g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_INS, CMD_RDSR );
+		g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_WRITE_REQ, 0x1 );
+		g_sys.SysDelay( 150 US );
+
+		int status = g_pcie.read_user( BITCHART::DRV_UCLK::_EEPROM_READ );
+		//fprintf( stdout, "\t[EEPROM_BUSY] STAT:%d\n", status );
+		if( !(status & 0x1) ) break;	//0:ready, 1:busy
+		nWait++;
+	}
+	//if( nWait > 10 ) return true;
+	return false;
+}
+
+void CHw::EepromWrite( int nAddr, int nData, int nWBytes )
+{
+	int wAddr = nAddr;
+	IsEepromReady();
+	for( int byte=0;byte<nWBytes;byte++ )
+	{
+		if( !IsValidEepromAddr( wAddr ) ) continue;
+		int nPos = byte*8;
+		EepromWren();
+		g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_INS      , CMD_WRITE );
+		g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_ADDR_H   , (wAddr>>8)&0xFF );
+		g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_ADDR_L   , (wAddr>>0)&0xFF );
+		g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_DATA     , (nData>>nPos)&0xFF );
+		g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_WRITE_REQ, 0x1 );
+		g_sys.SysDelay( 150 US );
+
+		IsEepromReady();
+		wAddr++;
+	}
+	EepromWrdi();	//2024.02.13 - KWMOON
+}
+
+int CHw::EepromRead (int nAddr, int nRBytes )
+{
+	int nRead = 0x0;
+	int rAddr = nAddr;
+	for( int byte=0;byte<nRBytes;byte++ )
+	{
+		if( !IsValidEepromAddr( rAddr ) ) continue;
+		EepromWren();
+		g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_INS      , CMD_READ );
+		g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_ADDR_H   , (rAddr>>8)&0xFF );
+		g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_ADDR_L   , (rAddr>>0)&0xFF );
+		g_pcie.write_user( BITCHART::DRV_UCLK::_EEPROM_WRITE_REQ, 0x1 );
+		g_sys.SysDelay( 150 US );
+
+		int cByte = g_pcie.read_user( BITCHART::DRV_UCLK::_EEPROM_READ )&0xFF;
+		int nPos = byte*8;
+		nRead |= (cByte<<nPos);
+		rAddr++;
+	}
+	EepromWrdi();	//2024.02.13 - KWMOON
+	return nRead;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SDRAM/SODIMM CTRL RESET - DBM/DFM
+// remove 2022.12.01
+//void CHw::DramCtrlReset()
+//{
+//	g_pcie.write_user( BITCHART::GLOBAL_MODE_REG::_DRAM_CTRL_RESET, 0x1 );
+//	g_sys.SysDelay( 100 MS );
+//}

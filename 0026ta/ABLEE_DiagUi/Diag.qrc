@@ -1,0 +1,41 @@
+<RCC>
+    <qresource prefix="/stylesheet">
+        <file>qss/Medize.qss</file>
+        <file>qss/HackBook.qss</file>
+        <file>qss/MailSy.qss</file>
+        <file>qss/WordOffice.qss</file>
+        <file>qss/ExcelOffice.qss</file>
+        <file>qss/Ubuntu.qss</file>
+        <file>qss/Integrid.qss</file>
+    </qresource>
+    <qresource prefix="/icon">
+        <file>icon/ablee.ico</file>
+        <file>icon/branch-end.png</file>
+        <file>icon/branch-more.png</file>
+        <file>icon/config.ico</file>
+        <file>icon/load0.ico</file>
+        <file>icon/maintenance.png</file>
+        <file>icon/Settings.ico</file>
+        <file>icon/setup0.ico</file>
+        <file>icon/tree-closed.png</file>
+        <file>icon/tree-open.png</file>
+        <file>icon/vline.png</file>
+        <file>icon/red_marble.ico</file>
+        <file>icon/green_marble.ico</file>
+        <file>icon/itemtest.ico</file>
+        <file>icon/load.ico</file>
+        <file>icon/reload.ico</file>
+        <file>icon/test.ico</file>
+        <file>icon/stop.ico</file>
+        <file>icon/checkbox_select.ico</file>
+        <file>icon/arrow_right.ico</file>
+        <file>icon/next-arrow.ico</file>
+        <file>icon/checkbox.ico</file>
+        <file>icon/arrow-drop-up.ico</file>
+        <file>icon/arrow-drop-down.ico</file>
+        <file>icon/stop_circle.ico</file>
+        <file>icon/ic_memory.ico</file>
+        <file>icon/file_info.ico</file>
+        <file>icon/chip_device.ico</file>
+    </qresource>
+</RCC>
